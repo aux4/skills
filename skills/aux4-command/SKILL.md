@@ -124,7 +124,7 @@ Usage: `aux4 db admin reset`
 | `name` | string | Variable name, used as `${varname}` in execute |
 | `text` | string | Description for help output and interactive prompts |
 | `default` | string | Default value. If set, skips the interactive prompt |
-| `arg` | boolean | Accept as positional argument (e.g., `aux4 cmd value` instead of `--name value`) |
+| `arg` | boolean | Accept as positional argument (e.g., `aux4 cmd value` instead of `--name value`). Only one variable per command can be `arg: true` |
 | `multiple` | boolean | Accept multiple values (e.g., `--tag a --tag b`, accessed as `${tag*}`) |
 | `env` | string | Read from this environment variable if set |
 | `options` | string[] | Present a select menu instead of free-text prompt |
@@ -175,12 +175,18 @@ Use in execute strings to format variables for passing to commands:
 | Function | Input | Output |
 |----------|-------|--------|
 | `value(name)` | name="John" | `John` |
-| `values(a, b)` | a="x", b="y" | `x y` |
+| `values(a, b)` | a="x", b="y" | `'x' 'y'` |
 | `param(name)` | name="John" | `--name 'John'` |
 | `params(a, b)` | a="x", b="y" | `--a 'x' --b 'y'` |
 | `object(a, b)` | a="x", b="y" | `'{"a":"x","b":"y"}'` |
 
 Parameters with empty/default values are omitted automatically.
+
+**Nested field access**: Use dot notation to access nested config/variable values. For example, with `person: { firstName: John, lastName: Doe }` in config:
+- `values(person.firstName, person.lastName)` resolves to `'John' 'Doe'`
+- `values(person, person.firstName, person.lastName)` resolves to `'{"firstName":"John","lastName":"Doe"}' 'John' 'Doe'`
+
+This works with all parameter functions. The external command (JS, Go, etc.) receives these as fixed positional arguments at known indices — it does not need to implement config parsing or key lookup.
 
 ### Conditional Execution
 
@@ -240,14 +246,13 @@ Operators: `==`, `!=`
 ]
 ```
 
-**Call another aux4 command:**
+**Use config values directly (--config auto-populates variables):**
 ```json
 "execute": [
-  "aux4 config get dev/host",
-  "set:host=${response}",
-  "log:Deploying to ${host}"
+  "log:Deploying to ${host}:${port}"
 ]
 ```
+Usage: `aux4 deploy --config dev` — aux4 extracts `host` and `port` from the config file automatically. No need to call `aux4 config get`.
 
 ## Man Page
 

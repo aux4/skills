@@ -70,7 +70,7 @@ Variables are parameters for commands. They support:
 | `name` | string | Variable name, referenced as `${name}` in execute |
 | `text` | string | Description shown in help and prompts |
 | `default` | string | Default value (skips prompt if set) |
-| `arg` | boolean | Accept as positional argument |
+| `arg` | boolean | Accept as positional argument (only one variable per command can be `arg: true`) |
 | `multiple` | boolean | Accept multiple values |
 | `env` | string | Read from environment variable |
 | `options` | string[] | List of choices for select prompt |
@@ -110,11 +110,17 @@ Used in `execute` strings to format variables:
 | Function | Example | Output |
 |----------|---------|--------|
 | `value(name)` | `command value(file)` | `command myfile.txt` |
-| `values(a, b)` | `command values(host, port)` | `command localhost 3000` |
+| `values(a, b)` | `command values(host, port)` | `command 'localhost' '3000'` |
 | `param(name)` | `command param(file)` | `command --file 'myfile.txt'` |
 | `params(a, b)` | `command params(host, port)` | `command --host 'localhost' --port '3000'` |
 | `object(a, b)` | `command object(host, port)` | `command '{"host":"localhost","port":3000}'` |
 | `if(a == b)` | `if(env == prod)` | Conditional execution |
+
+**Nested field access**: Use dot notation to access nested config/variable values. For example, with `person: { firstName: John, lastName: Doe }` in config:
+- `values(person.firstName, person.lastName)` resolves to `'John' 'Doe'`
+- `values(person, person.firstName, person.lastName)` resolves to `'{"firstName":"John","lastName":"Doe"}' 'John' 'Doe'` — passing the parent object as JSON and the individual fields as separate arguments
+
+This works with `value()`, `values()`, `param()`, `params()`, and `object()`. The external command (JS, Go, etc.) receives these as fixed positional arguments at known indices — it does not need to implement config parsing or key lookup.
 
 ### Configuration Files (config.yaml)
 
@@ -127,7 +133,9 @@ config:
     port: 3000
 ```
 
-Access nested values with `/`: `aux4 config get dev/host` returns `localhost`.
+The `--config` flag automatically extracts values from the config file and populates command variables. You do **not** need to call `aux4 config get` to retrieve individual values — aux4 handles it automatically.
+
+Access nested values with `/`: `aux4 config get dev/host` returns `localhost`. The `config get` command is only needed for programmatic access outside of normal command variable resolution.
 
 ### Package Ecosystem
 

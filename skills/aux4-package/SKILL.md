@@ -168,6 +168,8 @@ The `main` profile is the entry point. Use `profile:` executor for subcommand gr
 }
 ```
 
+Only one variable per command can have `"arg": true`. This lets the user pass that value as a positional argument (`aux4 cmd value`) instead of a flag (`aux4 cmd --name value`).
+
 ### Execute Instructions
 
 Commands can use these prefixes:
@@ -188,10 +190,12 @@ Commands can use these prefixes:
 
 Parameter functions:
 - `value(name)` - raw value
-- `values(a, b, c)` - multiple raw values
+- `values(a, b, c)` - multiple raw values as separate quoted arguments
 - `param(name)` - as `--name 'value'`
 - `params(a, b)` - multiple params
 - `object(a, b)` - as JSON object
+
+**Nested field access**: Use dot notation for nested config values (e.g., `values(db.host, db.port)` resolves to `'localhost' '5432'`). Passing a parent object returns JSON: `values(db, db.host)` resolves to `'{"host":"localhost","port":5432}' 'localhost'`. The external command receives these as fixed positional arguments — no config parsing needed.
 
 ## Step 2: Create the LICENSE File
 

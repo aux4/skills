@@ -159,7 +159,7 @@ echo '{"host":"localhost","port":3000}' | aux4 config merge --file config.yaml -
 
 ### The --config Flag
 
-The `--config` flag lets commands pull variables from a config file. This is built into aux4 core.
+The `--config` flag lets commands pull variables from a config file. This is built into aux4 core. **aux4 automatically extracts values from the config file and populates command variables** — you do not need to call `aux4 config get` to retrieve individual values.
 
 ```json
 {
@@ -207,7 +207,30 @@ aux4 connect --configFile environments.yaml --config staging
 
 ### Reading Config in Execute Arrays
 
-Use `aux4 config get` within execute instructions to read config values programmatically:
+**Prefer `--config` over manual `config get` calls.** With `--config`, aux4 automatically populates variables from the config file:
+
+```json
+{
+  "name": "deploy",
+  "execute": [
+    "log:Deploying to ${host}:${port}"
+  ],
+  "help": {
+    "text": "Deploy to an environment",
+    "variables": [
+      { "name": "host", "text": "Server host" },
+      { "name": "port", "text": "Server port" }
+    ]
+  }
+}
+```
+
+```bash
+aux4 deploy --config dev     # aux4 extracts host and port from config automatically
+aux4 deploy --config prod
+```
+
+Use `aux4 config get` only when you need programmatic access to config values that are **not** command variables (e.g., dynamic paths, computed keys):
 
 ```json
 {
@@ -215,9 +238,7 @@ Use `aux4 config get` within execute instructions to read config values programm
   "execute": [
     "nout:aux4 config get --file deploy.yaml ${env}/host",
     "set:host=${response}",
-    "nout:aux4 config get --file deploy.yaml ${env}/port",
-    "set:port=${response}",
-    "log:Deploying to ${host}:${port}"
+    "log:Deploying to ${host}"
   ],
   "help": {
     "text": "Deploy to an environment",
@@ -326,8 +347,9 @@ When working with aux4 config files:
 
 1. Always use the `config` root key in YAML and JSON files.
 2. Use `/` to separate nested path levels (e.g., `dev/host`, `database/credentials/user`).
-3. Prefer `--config` flag for environment-based command execution over manual `config get` calls.
-4. Add `aux4/config` to package dependencies when your package needs config support.
-5. Remember that `config get` returns JSON for objects and plain text for scalars.
-6. Use `config merge --save true` to persist changes; without `--save`, output goes to stdout.
-7. Config files are auto-discovered in order: `config.yaml`, `config.yml`, `config.json`.
+3. Prefer `--config` flag for environment-based command execution over manual `config get` calls. aux4 automatically populates command variables from the config — no need for `aux4 config get`.
+4. Use dot notation in parameter functions to access nested config values (e.g., `values(db.host, db.port)`). Passing a parent object returns JSON: `values(db, db.host)` resolves to `'{"host":"localhost","port":5432}' 'localhost'`. External commands receive these as fixed positional arguments — no config parsing needed.
+5. Add `aux4/config` to package dependencies when your package needs config support.
+6. Remember that `config get` returns JSON for objects and plain text for scalars.
+7. Use `config merge --save true` to persist changes; without `--save`, output goes to stdout.
+8. Config files are auto-discovered in order: `config.yaml`, `config.yml`, `config.json`.
