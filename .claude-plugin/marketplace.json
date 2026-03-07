@@ -22,6 +22,9 @@
         "./skills/aux4-docs",
         "./skills/aux4-config",
         "./skills/aux4-agent"
+      ],
+      "agents": [
+        "./agents/aux4-package-creator.md"
       ]
     }
   ]
