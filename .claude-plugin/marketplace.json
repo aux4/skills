@@ -1,5 +1,5 @@
 {
-  "name": "aux4-skills",
+  "name": "aux4",
   "owner": {
     "name": "aux4",
     "email": "support@aux4.io"
@@ -10,7 +10,7 @@
   },
   "plugins": [
     {
-      "name": "aux4-skills",
+      "name": "skills",
       "description": "Skills for building aux4 packages — CLI generator, commands, tests, docs, config, and AI agents",
       "source": "./",
       "strict": false,

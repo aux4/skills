@@ -8,7 +8,7 @@ Claude Code skills for creating and working with [aux4](https://aux4.io) package
 
 ```
 /plugin marketplace add aux4/skills
-/plugin install aux4-skills@aux4-skills
+/plugin install skills@aux4
 ```
 
 ### Manual (via aux4)
