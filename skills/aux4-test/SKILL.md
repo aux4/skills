@@ -303,28 +303,50 @@ fresh
 
 ## Writing Tests for aux4 Packages
 
-### Testing Commands with .aux4 File Fixtures
+### Package Tests (in `package/test/`)
 
-The most common pattern is creating a `.aux4` file fixture and testing commands against it:
+When tests live inside `package/test/`, the test runner automatically discovers the `package/.aux4` file from the parent directory. **Do NOT create `file:.aux4` blocks** — just call `aux4 <command>` directly:
 
 ````markdown
-# my-tool
+# greet hello
+
+## with default name
+
+### should greet World
+
+```execute
+aux4 greet hello
+```
+
+```expect
+Hello, World!
+```
+
+## with custom name
+
+### should greet the given name
+
+```execute
+aux4 greet hello --name Alice
+```
+
+```expect
+Hello, Alice!
+```
+````
+
+### Standalone Tests (outside a package)
+
+Only use `file:.aux4` blocks when testing commands that are NOT part of a package (e.g., standalone test files or testing inline command definitions):
+
+````markdown
+# my standalone test
 
 ```file:.aux4
 {
   "profiles": [
     {
       "name": "main",
-      "commands": [
-        {
-          "name": "greet",
-          "execute": ["profile:greet"],
-          "help": { "text": "Greetings" }
-        }
-      ]
-    },
-    {
-      "name": "greet",
       "commands": [
         {
           "name": "hello",
@@ -342,26 +364,14 @@ The most common pattern is creating a `.aux4` file fixture and testing commands 
 }
 ```
 
-## greet hello
-
-### with default name
+## should greet World
 
 ```execute
-aux4 greet hello
+aux4 hello
 ```
 
 ```expect
 Hello, World!
-```
-
-### with --name flag
-
-```execute
-aux4 greet hello --name Alice
-```
-
-```expect
-Hello, Alice!
 ```
 ````
 
@@ -421,6 +431,14 @@ aux4 config get dev | jq .
 ```
 ````
 
+### Testing Long-Running Processes (Servers, Daemons)
+
+For tests that require a background server, use `beforeAll`/`afterAll` hooks with `nohup`. Read `../references/build-configuration.md` for the full pattern with examples.
+
+### Preparing Go Packages for Testing
+
+For Go packages, you must build and create a symlink before running tests. See `../references/build-configuration.md` for the build + symlink commands.
+
 ## Test File Naming Conventions
 
 - Place in `package/test/` directory
@@ -433,6 +451,9 @@ aux4 config get dev | jq .
 | `aux4 config get` | `config__get.test.md` |
 | `aux4 pdf parse` | `pdf__parse.test.md` |
 | `aux4 repository read` | `repository__read.test.md` |
+| `aux4 email list all` | `email_list__all.test.md` |
+
+**Special characters in names**: If a profile or command name contains special characters (like `:`), replace them with a single `_` in the filename. For example, profile `email:list` with command `all` becomes `email_list__all.test.md`.
 
 - Test files are published to hub.aux4.io as usage examples alongside man pages, so they also serve as documentation
 - Use descriptive heading hierarchy:
@@ -455,10 +476,13 @@ aux4 config get dev | jq .
 
 When creating tests:
 
-1. Determine what commands need testing based on the `.aux4` file
-2. Create a `.test.md` file for each major command or feature
-3. Include a `file:.aux4` block if testing a package's commands
-4. Write tests for all command variations (default values, flags, args, errors)
-5. Use appropriate expect modifiers for flexible matching
-6. Group related tests under descriptive headings
-7. When writing `.test.md` files, use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
+1. Determine what commands need testing based on the `.aux4` file.
+2. Create a `.test.md` file for each major command or feature.
+3. For package tests (in `package/test/`), call `aux4 <command>` directly — do NOT use `file:.aux4` blocks. The test runner auto-discovers `package/.aux4` from the parent directory. Only use `file:.aux4` for standalone tests outside a package.
+4. Write tests for all command variations (default values, flags, args, errors).
+5. Use appropriate expect modifiers for flexible matching.
+6. Group related tests under descriptive headings.
+7. For tests that need a background server or daemon, use `nohup ... >/dev/null 2>&1 &` in `beforeAll` and clean up in `afterAll`.
+8. For Go packages, ensure the binary is built and a symlink exists at `package/<binary-name>` before running tests.
+9. When writing `.test.md` files, use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
+10. **Always format JSON with indentation** in `file:` blocks (`.aux4`, `config.yaml`, fixture files). Never use single-line compact JSON for `.aux4` definitions or config fixtures. Each item in the `execute` array must be on its own line.

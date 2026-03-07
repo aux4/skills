@@ -54,54 +54,12 @@ Add a command to an existing `.aux4` file based on: $ARGUMENTS
 
 ## Profile Routing
 
-For subcommand groups, use `profile:` to create a hierarchy:
+For subcommand groups, use `profile:name` to route to another profile. The profile name must match the command that routes to it. For deeper nesting, use `<parent>:<command>` as the profile name (e.g., `email:list`, `ai:agent:config`).
 
-```json
-{
-  "profiles": [
-    {
-      "name": "main",
-      "commands": [
-        {
-          "name": "db",
-          "execute": ["profile:db"],
-          "help": { "text": "Database commands" }
-        }
-      ]
-    },
-    {
-      "name": "db",
-      "commands": [
-        {
-          "name": "migrate",
-          "execute": ["echo 'migrating...'"],
-          "help": { "text": "Run database migrations" }
-        },
-        {
-          "name": "seed",
-          "execute": ["echo 'seeding...'"],
-          "help": { "text": "Seed the database" }
-        }
-      ]
-    }
-  ]
-}
-```
+- **Command/profile names**: dashes for composed names (`send-email`, `my-command`)
+- **Variable names**: camelCase (`firstName`, `configFile`)
 
-Usage: `aux4 db migrate`, `aux4 db seed`
-
-For deeper nesting, chain profiles:
-
-```json
-{
-  "name": "admin",
-  "execute": ["profile:db:admin"],
-  "help": { "text": "Admin database commands" }
-}
-```
-
-Profile name: `"db:admin"` with commands like `reset`, `backup`, etc.
-Usage: `aux4 db admin reset`
+See `/aux4` for full profile routing examples, nesting patterns, and naming conventions.
 
 ## Variable Definitions
 
@@ -119,28 +77,7 @@ Usage: `aux4 db admin reset`
 }
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `name` | string | Variable name, used as `${varname}` in execute |
-| `text` | string | Description for help output and interactive prompts |
-| `default` | string | Default value. If set, skips the interactive prompt |
-| `arg` | boolean | Accept as positional argument (e.g., `aux4 cmd value` instead of `--name value`). Only one variable per command can be `arg: true` |
-| `multiple` | boolean | Accept multiple values (e.g., `--tag a --tag b`, accessed as `${tag*}`) |
-| `env` | string | Read from this environment variable if set |
-| `options` | string[] | Present a select menu instead of free-text prompt |
-| `hide` | boolean | Hide input when typing (for passwords) |
-| `encrypt` | boolean | Encrypt the stored value |
-
-**Resolution order**: CLI argument > environment variable > config file > encrypted > default value > interactive prompt
-
-### Variable Usage in Execute
-
-- Simple: `${varname}`
-- Previous command output: `${response}`
-- Package directory: `${packageDir}`
-- aux4 home: `${aux4HomeDir}`
-- Array access: `${items[$index]}`, `${object[$key]}`
-- All multiple values: `${tag*}`, specific: `${tag*[0]}`
+See `/aux4` for the full property reference, resolution order, special variables (`${response}`, `${packageDir}`, `${aux4HomeDir}`), and dot variable (nested parameter) syntax.
 
 ## Execute Instructions
 
@@ -152,41 +89,7 @@ Usage: `aux4 db admin reset`
 
 ### Executor Prefixes
 
-| Prefix | Syntax | Description |
-|--------|--------|-------------|
-| *(none)* | `command args` | Run shell command, output to stdout |
-| `profile:` | `profile:name` | Switch to another profile for subcommands |
-| `set:` | `set:key=value` | Set a variable for subsequent commands |
-| `set:` | `set:key=!command` | Set variable from command output |
-| `log:` | `log:message ${var}` | Print to stdout (faster than echo) |
-| `debug:` | `debug:message` | Print to stderr only when AUX4_DEBUG=true |
-| `nout:` | `nout:command` | Run command silently, output saved to `${response}` |
-| `json:` | `json:${response}` | Parse JSON string into accessible object |
-| `each:` | `each:${response}` | Iterate over lines or array elements |
-| `confirm:` | `confirm:Are you sure?` | Prompt yes/no, aborts on "no" |
-| `stdin:` | `stdin:command args` | Pipe stdin from previous command or terminal |
-| `alias:` | `alias:command` | Run command sharing parent's stdio |
-| `#` | `# comment text` | No-op comment for documentation |
-
-### Parameter Functions
-
-Use in execute strings to format variables for passing to commands:
-
-| Function | Input | Output |
-|----------|-------|--------|
-| `value(name)` | name="John" | `John` |
-| `values(a, b)` | a="x", b="y" | `'x' 'y'` |
-| `param(name)` | name="John" | `--name 'John'` |
-| `params(a, b)` | a="x", b="y" | `--a 'x' --b 'y'` |
-| `object(a, b)` | a="x", b="y" | `'{"a":"x","b":"y"}'` |
-
-Parameters with empty/default values are omitted automatically.
-
-**Nested field access**: Use dot notation to access nested config/variable values. For example, with `person: { firstName: John, lastName: Doe }` in config:
-- `values(person.firstName, person.lastName)` resolves to `'John' 'Doe'`
-- `values(person, person.firstName, person.lastName)` resolves to `'{"firstName":"John","lastName":"Doe"}' 'John' 'Doe'`
-
-This works with all parameter functions. The external command (JS, Go, etc.) receives these as fixed positional arguments at known indices — it does not need to implement config parsing or key lookup.
+Common prefixes: `profile:`, `set:`, `log:`, `nout:`, `json:`, `each:`, `confirm:`, `stdin:`, `alias:`, `debug:`, `#`. Use parameter functions (`value()`, `values()`, `param()`, `params()`, `object()`) to format variables for external commands. See `/aux4` for the full executor and parameter function reference tables.
 
 ### Conditional Execution
 
@@ -265,6 +168,9 @@ Every command should have a man page. Create a markdown file in the `man/` direc
 | `aux4 mytool run all` | `mytool__run__all.md` |
 | `aux4 db migrate` | `db__migrate.md` |
 | `aux4 aux4 releaser release` | `aux4_releaser__release.md` |
+| `aux4 email list all` | `email_list__all.md` |
+
+**Special characters in names**: If a profile or command name contains special characters (like `:`), replace them with a single `_` in the filename. For example, profile `email:list` with command `all` becomes `email_list__all.md`, not `email:list__all.md`.
 
 Man pages are displayed when running `aux4 aux4 man <command>`.
 
@@ -334,7 +240,7 @@ The package myscope/my-package:0.1.0-local has been installed
 
 ## Test
 
-Add tests in `test/` (or `package/test/`). Name the file using double underscores for command hierarchy, matching the man page convention (e.g., `mytool__run.test.md` for `aux4 mytool run`). Test files are published to hub.aux4.io as usage examples, so they also serve as documentation.
+Add tests in `test/` (or `package/test/`). Name the file using double underscores for command hierarchy, matching the man page convention (e.g., `mytool__run.test.md` for `aux4 mytool run`). If the profile or command name contains special characters (like `:`), replace them with a single `_` (e.g., `email_list__all.test.md` for profile `email:list` command `all`). Test files are published to hub.aux4.io as usage examples, so they also serve as documentation.
 
 If testing a new command in an existing file, add a new heading section:
 
@@ -372,7 +278,7 @@ Error: unsupported format *?
 ```
 ````
 
-If the command needs a `.aux4` fixture for testing, add a `file:.aux4` block at the parent heading level. See `/aux4-test` for the full test format.
+**Important**: If the test lives inside `package/test/`, do NOT create a `file:.aux4` block — the test runner auto-discovers `package/.aux4` from the parent directory. Only use `file:.aux4` for standalone tests outside a package. See `/aux4-test` for the full test format.
 
 ## Instructions
 
@@ -384,8 +290,9 @@ When adding a command:
 4. Define all variables with at minimum `name` and `text`. Add `default` for optional params, `arg: true` for positional args, `options` for select menus.
 5. Use the appropriate executor prefix for each instruction in the execute array.
 6. Use parameter functions (`value()`, `values()`, `param()`, `params()`) when passing variables to external commands or binaries.
-7. Create a man page in `man/` (or `package/man/`) with the correct double-underscore filename. The man page should have `#### Description`, `#### Usage`, and `#### Example` sections. The description should go beyond the short help text — explain what the command does, when to use it, how flags work, and any important behaviors. Include realistic examples with expected output.
-8. Add tests covering the main use case, edge cases, and error cases.
-9. If the new command requires an external tool (CLI binary, library, or runtime), add it to the `system` array in the package `.aux4`: `["test:tool --version", "brew:tool", "linux:tool"]`. The `test:` entry checks if it's already installed; the remaining entries are install options. See `/aux4-package` for the full system dependencies format.
-10. Do not modify existing commands unless explicitly asked.
-11. When writing markdown files (man pages, `.test.md`), use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
+7. Create a man page and update the README.md. See `/aux4-docs` for the full documentation format, conventions, and what to update.
+8. Add tests covering the main use case, edge cases, and error cases. For package tests (in `package/test/`), call `aux4 <command>` directly — do NOT use `file:.aux4` blocks. The test runner auto-discovers `package/.aux4` from the parent directory.
+10. If the new command requires an external tool (CLI binary, library, or runtime), add it to the `system` array in the package `.aux4`: `["test:tool --version", "brew:tool", "linux:tool"]`. The `test:` entry checks if it's already installed; the remaining entries are install options. See `/aux4-package` for the full system dependencies format.
+11. Do not modify existing commands unless explicitly asked.
+12. When writing markdown files (man pages, `.test.md`), use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
+13. **Always format JSON with indentation** in `.aux4` files, documentation, and test fixtures. Never use single-line compact JSON. Each item in the `execute` array must be on its own line.

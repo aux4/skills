@@ -15,13 +15,13 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./package/skills/aux4",
-        "./package/skills/aux4-package",
-        "./package/skills/aux4-command",
-        "./package/skills/aux4-test",
-        "./package/skills/aux4-docs",
-        "./package/skills/aux4-config",
-        "./package/skills/aux4-agent"
+        "./skills/aux4",
+        "./skills/aux4-package",
+        "./skills/aux4-command",
+        "./skills/aux4-test",
+        "./skills/aux4-docs",
+        "./skills/aux4-config",
+        "./skills/aux4-agent"
       ]
     }
   ]

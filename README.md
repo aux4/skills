@@ -4,20 +4,10 @@ Claude Code skills for creating and working with [aux4](https://aux4.io) package
 
 ## Installation
 
-### Plugin Marketplace (recommended)
-
 ```
 /plugin marketplace add aux4/skills
 /plugin install skills@aux4
 ```
-
-### Manual (via aux4)
-
-```bash
-aux4 install
-```
-
-This copies all skills to `~/.claude/skills/` and the `CLAUDE.md` to `~/.claude/CLAUDE.md`, making them available globally across all your projects.
 
 ## Skills
 

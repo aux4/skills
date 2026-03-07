@@ -61,6 +61,59 @@ Commands can switch to another profile using the `profile:` executor:
 
 This means `aux4 deploy <subcommand>` will look for commands in the `deploy` profile.
 
+#### Naming Conventions
+
+- **Profile names**: When creating a nested profile, give the profile the same name as the command that routes to it. For deeper nesting, use `<parent-profile>:<command>` format.
+- **Command and profile names**: Use dashes `-` for composed names (e.g., `my-command`, `send-email`).
+- **Variable names**: Use camelCase (e.g., `firstName`, `configFile`).
+
+**Nesting example**:
+- Command `email` in `main` profile → routes to profile `email`
+- Command `list` in `email` profile → routes to profile `email:list`
+- Command `config` in `ai:agent` profile → routes to profile `ai:agent:config`
+
+```json
+{
+  "profiles": [
+    {
+      "name": "main",
+      "commands": [
+        { "name": "email", "execute": ["profile:email"], "help": { "text": "Email commands" } }
+      ]
+    },
+    {
+      "name": "email",
+      "commands": [
+        { "name": "send", "execute": ["echo 'sending...'"], "help": { "text": "Send an email" } },
+        { "name": "list", "execute": ["profile:email:list"], "help": { "text": "List email commands" } }
+      ]
+    },
+    {
+      "name": "email:list",
+      "commands": [
+        { "name": "inbox", "execute": ["echo 'inbox'"], "help": { "text": "List inbox emails" } },
+        { "name": "sent", "execute": ["echo 'sent'"], "help": { "text": "List sent emails" } }
+      ]
+    }
+  ]
+}
+```
+
+Usage: `aux4 email send`, `aux4 email list inbox`, `aux4 email list sent`
+
+#### Private Commands
+
+Add `"private": true` to a command to hide it from `--help` output. The command still works when called directly:
+
+```json
+{
+  "name": "internal-setup",
+  "execute": ["echo 'setting up...'"],
+  "private": true,
+  "help": { "text": "Internal setup command" }
+}
+```
+
 ### Variables
 
 Variables are parameters for commands. They support:
@@ -84,6 +137,33 @@ Variables are parameters for commands. They support:
 - `${packageDir}` - Directory of the `.aux4` file
 - `${aux4HomeDir}` - aux4 home directory (`~/.aux4.config`)
 
+#### Dot Variables (Nested Parameters)
+
+Variables support dot notation for nested object fields. Use `${person.firstName}` in execute to reference nested values. Users can provide them in two ways:
+
+```bash
+# Individual dot-notation flags
+aux4 print-person --person.firstName John --person.lastName Doe --person.address.city NY
+
+# JSON object on the parent variable
+aux4 print-person --person '{"firstName":"John","lastName":"Doe","address":{"city":"NY"}}'
+```
+
+Only the parent variable needs to be declared in `variables` — nested fields are resolved automatically:
+
+```json
+{
+  "name": "print-person",
+  "execute": ["echo ${person.firstName} ${person.lastName} ${person.address.city}"],
+  "help": {
+    "text": "Print person info",
+    "variables": [
+      { "name": "person", "text": "The person object" }
+    ]
+  }
+}
+```
+
 ### Executors (Special Prefixes)
 
 Commands in the `execute` array can use special prefixes:
@@ -92,13 +172,14 @@ Commands in the `execute` array can use special prefixes:
 |--------|---------|---------|
 | *(none)* | `echo "hi"` | Run shell command |
 | `profile:` | `profile:deploy` | Switch to another profile |
-| `set:` | `set:url=https://api.com` | Set a variable |
+| `set:` | `set:url=https://api.com` | Set a variable to a static value |
+| `set:` (command) | `set:result=!curl -s ${url}` | Set variable from command output (stderr shown on error) |
 | `log:` | `log:Processing ${file}` | Print output |
 | `debug:` | `debug:value is ${x}` | Debug output (AUX4_DEBUG=true) |
 | `nout:` | `nout:curl -s ${url}` | Run without output, saves to `${response}` |
 | `json:` | `json:${response}` | Parse JSON output |
 | `each:` | `each:${response}` | Iterate over lines/array |
-| `confirm:` | `confirm:Are you sure?` | Yes/no prompt |
+| `confirm:` | `confirm:Are you sure?` | Yes/no prompt (bypass with `--yes`) |
 | `stdin:` | `stdin:command` | Pass stdin to command |
 | `alias:` | `alias:command` | Share stdio with parent |
 | `#` | `# this is a comment` | Comment (no-op) |
@@ -112,9 +193,15 @@ Used in `execute` strings to format variables:
 | `value(name)` | `command value(file)` | `command myfile.txt` |
 | `values(a, b)` | `command values(host, port)` | `command 'localhost' '3000'` |
 | `param(name)` | `command param(file)` | `command --file 'myfile.txt'` |
+| `param(name:alias)` | `command param(file:f)` | `command --f 'myfile.txt'` |
+| `param(name**)` | `command param(tag**)` | `command --tag 'a' --tag 'b'` (one flag per value) |
 | `params(a, b)` | `command params(host, port)` | `command --host 'localhost' --port '3000'` |
 | `object(a, b)` | `command object(host, port)` | `command '{"host":"localhost","port":3000}'` |
-| `if(a == b)` | `if(env == prod)` | Conditional execution |
+| `if(var)` | `if(name) && echo yes` | Test if variable has a value |
+| `if(var==)` | `if(name==) && echo empty` | Test if variable is empty |
+| `if(var==val)` | `if(env==prod) && echo prod` | Test equality |
+| `if(var!=val)` | `if(env!=dev) && echo not-dev` | Test inequality |
+| `if(!var)` | `if(!debug) && echo off` | Negation |
 
 **Nested field access**: Use dot notation to access nested config/variable values. For example, with `person: { firstName: John, lastName: Doe }` in config:
 - `values(person.firstName, person.lastName)` resolves to `'John' 'Doe'`
@@ -167,6 +254,10 @@ Use `--showSource` to see the execute instructions for a command:
 ```bash
 aux4 deploy run --showSource   # Show the execute array for deploy run
 ```
+
+### Interactive Shell
+
+`aux4 shell` starts an interactive REPL where you type aux4 commands without the `aux4` prefix. Supports line editing and history. Type `exit` to quit. Also works in batch mode via piped input.
 
 ### Built-in Commands
 

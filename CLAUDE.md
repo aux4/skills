@@ -31,33 +31,6 @@ aux4/                          # Monorepo root
 └── ...
 ```
 
-## Package Structure
-
-Every aux4 package follows this layout:
-
-```
-package-name/
-├── package/
-│   ├── .aux4              # Package metadata + command definitions
-│   ├── README.md          # Package documentation
-│   ├── LICENSE            # License file
-│   ├── man/               # Man pages (command__subcommand.md)
-│   ├── test/              # Tests (.test.md files)
-│   ├── lib/               # JS bundles (.mjs) — JS packages only
-│   └── dist/              # Compiled binaries — Go packages only
-│       ├── darwin/amd64/
-│       ├── darwin/arm64/
-│       ├── linux/amd64/
-│       ├── linux/arm64/
-│       ├── linux/386/
-│       ├── windows/amd64/
-│       ├── windows/arm64/
-│       └── windows/386/
-├── .aux4                  # Build/dev commands
-├── go.mod / package.json  # Language-specific config
-└── source files
-```
-
 ## Key Conventions
 
 - The `main` profile is the required entry point in every `.aux4` file
@@ -94,7 +67,7 @@ package-name/
 4. Use `aux4 aux4 releaser release` to publish
 
 ### Adding features to an existing package
-1. Read the existing `package/.aux4` file
+1. Read the existing `.aux4` file
 2. Use `/aux4-command` to add the new command
 3. Use `/aux4-test` to add tests
 4. Use `/aux4-docs` to update README.md and man pages
@@ -102,7 +75,7 @@ package-name/
 
 ### Updating documentation
 1. Use `/aux4-docs` to understand the doc structure and conventions
-2. Update `package/README.md` and `package/man/*.md`
+2. Update README.md and man pages
 
 ### Working with configuration
 1. Use `/aux4-config` to understand config.yaml patterns
