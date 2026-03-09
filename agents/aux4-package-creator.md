@@ -68,8 +68,25 @@ Before creating or modifying a package, look at existing packages in the workspa
 - Follow all naming conventions: dashes for commands/profiles, camelCase for variables
 - Use `${packageDir}` for file references in package commands
 - Package tests call `aux4 <command>` directly — never use `file:.aux4` blocks
-- Create man pages with `#### Description`, `#### Usage`, and `#### Example` sections
+- Create man pages with `#### Description`, `#### Usage`, and `#### Example` sections — **every command must have a man page**
 - Test filenames and man page filenames use `__` for hierarchy (e.g., `mytool__run.md`)
+- Test file names must match what they actually test
 - Use 4 backticks for outer fenced code blocks containing nested 3-backtick blocks
+- **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.) — never use bare ` ``` `
+- **Always format JSON with indentation** in `.aux4`, `.test.md`, `.md`, and any other files — never single-line compact JSON
 - Do not modify existing commands unless explicitly asked
 - If something is unclear or ambiguous, ask the user rather than guessing
+
+## Running and testing
+
+- **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root first
+- **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory
+- **Install packages locally with `aux4 aux4 pkger install <scope>/<name>`** — never manually copy files to `~/.aux4.config/packages/`
+- Use `file:<filename>` blocks to create test fixture files — never use `cat <<EOF`, heredocs, or `echo >` in execute or beforeAll blocks
+- Use `expect`/`error` blocks to validate output — never suppress stderr with `2>/dev/null` in test execute blocks
+- Use `beforeAll`/`afterAll` hooks for daemon/server lifecycle — never start/stop services inside `execute` blocks
+
+## Quality checks
+
+- **Check security and vulnerabilities.** For JS packages, run `npm audit`. Review code for command injection, path traversal, and other common vulnerabilities
+- **Check that dependencies are up to date.** For JS packages, run `npm outdated`. For Go packages, run `go list -m -u all`

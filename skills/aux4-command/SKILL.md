@@ -91,6 +91,8 @@ See `/aux4` for the full property reference, resolution order, special variables
 
 Common prefixes: `profile:`, `set:`, `log:`, `nout:`, `json:`, `each:`, `confirm:`, `stdin:`, `alias:`, `debug:`, `#`. Use parameter functions (`value()`, `values()`, `param()`, `params()`, `object()`) to format variables for external commands. See `/aux4` for the full executor and parameter function reference tables.
 
+**Important**: When calling external binaries or scripts, **always pass known parameters by index using `values()`** — the target program receives them as positional args and doesn't need to parse flags. Only use `value(*)` (all params as JSON) when the parameter list is dynamic and not known in advance.
+
 ### Conditional Execution
 
 ```json
@@ -289,10 +291,12 @@ When adding a command:
 3. If the new command starts a subcommand group, create a new profile and use `profile:name` routing.
 4. Define all variables with at minimum `name` and `text`. Add `default` for optional params, `arg: true` for positional args, `options` for select menus.
 5. Use the appropriate executor prefix for each instruction in the execute array.
-6. Use parameter functions (`value()`, `values()`, `param()`, `params()`) when passing variables to external commands or binaries.
+6. **Always pass known parameters by index using `values(var1, var2, ...)`** when calling external binaries or scripts. The target program receives them as positional args. Only use `value(*)` when the parameter list is dynamic. See `/aux4` for the full parameter function reference.
 7. Create a man page and update the README.md. See `/aux4-docs` for the full documentation format, conventions, and what to update.
 8. Add tests covering the main use case, edge cases, and error cases. For package tests (in `package/test/`), call `aux4 <command>` directly — do NOT use `file:.aux4` blocks. The test runner auto-discovers `package/.aux4` from the parent directory.
 10. If the new command requires an external tool (CLI binary, library, or runtime), add it to the `system` array in the package `.aux4`: `["test:tool --version", "brew:tool", "linux:tool"]`. The `test:` entry checks if it's already installed; the remaining entries are install options. See `/aux4-package` for the full system dependencies format.
 11. Do not modify existing commands unless explicitly asked.
 12. When writing markdown files (man pages, `.test.md`), use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
 13. **Always format JSON with indentation** in `.aux4` files, documentation, and test fixtures. Never use single-line compact JSON. Each item in the `execute` array must be on its own line.
+14. **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.). Never use bare ` ``` ` without a language.
+15. **Every command must have a man page** — do not skip any. When adding multiple commands, create a man page for each one.

@@ -171,7 +171,7 @@ config:
 ## Markdown Rules
 
 - Use 4 backticks (`````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
-- Use `yaml` language tag for config examples, `bash` for commands, `text` for output, `json` for JSON.
+- **Always specify a language tag** on fenced code blocks. Use `yaml` for config examples, `bash` for commands, `text` for output, `json` for JSON. Never use bare ` ``` ` without a language.
 - **Always format JSON with indentation** in documentation examples. Never use single-line compact JSON. This applies to config examples, request/response bodies, `.aux4` snippets, and event formats.
 
 Good:
@@ -209,5 +209,7 @@ When updating documentation:
 3. Update the README.md: main config example (if new config key), feature section, and any affected sections.
 4. Update the man page: Description bullet list, config example, Usage flags, and Example section.
 5. Keep both in sync — if you add something to the README, make sure the man page reflects it too.
-6. Do not remove existing documentation unless the feature was removed.
-7. Do not add sections for features that don't exist yet.
+6. **Every command must have a man page** — when new commands are added, create a man page for each one. Do not skip any.
+7. **Keep README in sync with commands** — when commands are added or modified, update the README command reference section.
+8. Do not remove existing documentation unless the feature was removed.
+9. Do not add sections for features that don't exist yet.

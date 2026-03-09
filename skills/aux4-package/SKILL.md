@@ -258,19 +258,25 @@ When creating a package, always:
 2. Ask if it's a Go package (multi-platform binaries) or JavaScript package (Node.js bundle) or a simple shell-only package.
 3. Create the `package/` directory with `.aux4`, `LICENSE`, and `README.md`.
 4. Design a clean command hierarchy using profiles for subcommand groups.
-5. Add man pages in `package/man/` for each command.
+5. Add man pages in `package/man/` for **every command** — do not skip any.
 6. Add tests in `package/test/` using `.test.md` format. Tests should call `aux4 <command>` directly — do NOT use `file:.aux4` blocks. The test runner auto-discovers `package/.aux4` from the parent directory.
 7. Create the root `.aux4` with the appropriate build configuration:
    - Go: builder profiles for darwin/linux/windows with `go build` commands (use `cd ${packageDir} &&` prefix)
    - JS: simple `npm run build` + `rollup.config.js` + `package.json`
    - Shell-only: empty build or no build needed
 8. Create a `.gitignore` file excluding build artifacts (`package/dist/`, `node_modules/`, etc.), platform files (`.DS_Store`), and language-specific generated files (`go.sum`, symlinks).
-9. Create `.github/workflows/publish.yml` with the appropriate build steps for the package type.
+9. Create `.github/workflows/publish.yml` with the appropriate build steps for the package type. **The workflow must run tests before publishing** — add a test step after the build step.
 10. Use `${packageDir}` to reference files within the package.
-11. Use `value()`, `values()`, `param()`, `params()` for parameter formatting in execute commands.
+11. **Always pass known parameters by index using `values(var1, var2, ...)`** when calling external binaries or scripts. The target program receives them as positional args and doesn't need to parse flags — aux4 handles all variable resolution including `--config` binding. Only use `value(*)` (all params as JSON) when the parameter list is dynamic.
 12. For Go packages, commands reference `${packageDir}/binary-name`.
 13. For JS packages, commands reference `node ${packageDir}/lib/bundle.mjs` and include Node.js in system dependencies.
 14. When writing markdown files (man pages, `.test.md`, `README.md`), use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
-15. For Go packages, before running tests: build the binary (`aux4 build`), then create a symlink from `package/<binary-name>` to `dist/<os>/<arch>/<binary-name>` for the current platform.
-16. When any command is added or modified, always update the corresponding man page, test file, and README.md to stay in sync. See `/aux4-docs` for documentation conventions.
-17. Load all needed skills at the start of package creation (e.g., `/aux4-package`, `/aux4-test`, `/aux4-command`, `/aux4-docs`) rather than loading them one by one as needed.
+15. **Always format JSON with indentation** in `.aux4`, `.test.md`, `.md`, and any other files. Never use single-line compact JSON. Each item in the `execute` array must be on its own line.
+16. **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.). Never use bare ` ``` ` without a language.
+17. For Go packages, before running tests: build the binary (`aux4 build`), then create a symlink from `package/<binary-name>` to `dist/<os>/<arch>/<binary-name>` for the current platform.
+18. **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root, then run `aux4 test run` from the `package/` or `package/test/` directory.
+19. When any command is added or modified, always update the corresponding man page, test file, and README.md to stay in sync. See `/aux4-docs` for documentation conventions.
+20. Load all needed skills at the start of package creation (e.g., `/aux4-package`, `/aux4-test`, `/aux4-command`, `/aux4-docs`) rather than loading them one by one as needed.
+21. **Install packages locally with `aux4 aux4 pkger install <scope>/<name>`** — never manually copy files to `~/.aux4.config/packages/`.
+22. **Check security and vulnerabilities.** For JS packages, run `npm audit` after installing dependencies. Review code for common vulnerabilities (command injection, path traversal, etc.).
+23. **Check that dependencies are up to date.** For JS packages, run `npm outdated` to verify. For Go packages, run `go list -m -u all`.

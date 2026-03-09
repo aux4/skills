@@ -58,20 +58,37 @@ aux4/                          # Monorepo root
 | `/aux4-config` | Working with config.yaml files and the config package |
 | `/aux4-agent` | Creating AI agents using aux4/ai-agent |
 
+## Important Rules
+
+- **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory
+- **Always build before testing** — run `npm run build` (JS) or `aux4 build` (Go) from the project root first
+- **Install packages locally with `aux4 aux4 pkger install <scope>/<name>`** — never manually copy files to `~/.aux4.config/packages/`
+- **Always format JSON with indentation** in `.aux4`, `.test.md`, `.md`, and any other files — never single-line compact JSON
+- **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.) — never use bare ` ``` `
+- **Use `file:<filename>` blocks** in tests to create fixture files — never use `cat <<EOF`, heredocs, or `echo >`
+- **Use `expect`/`error` blocks** in tests to validate output — never suppress stderr with `2>/dev/null`
+- **Use `beforeAll`/`afterAll` hooks** for daemon/server lifecycle in tests — never start/stop services inside `execute` blocks
+- **Every command must have a man page** — do not skip any when adding new commands
+- **Keep README in sync** — update it whenever commands are added or modified
+- **Check security and vulnerabilities** — run `npm audit` (JS), review code for injection and common vulnerabilities
+- **Check dependencies are up to date** — run `npm outdated` (JS) or `go list -m -u all` (Go)
+- **Publish workflows must run tests** before publishing — add a test step in GitHub Actions
+
 ## Common Workflows
 
 ### Creating a new package
 1. Use `/aux4-package` to scaffold the package
 2. Use `/aux4-command` to add commands
 3. Use `/aux4-test` to write tests
-4. Use `aux4 aux4 releaser release` to publish
+4. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
+5. Use `aux4 aux4 releaser release` to publish
 
 ### Adding features to an existing package
 1. Read the existing `.aux4` file
 2. Use `/aux4-command` to add the new command
 3. Use `/aux4-test` to add tests
 4. Use `/aux4-docs` to update README.md and man pages
-5. Run `aux4 test run` to verify
+5. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
 
 ### Updating documentation
 1. Use `/aux4-docs` to understand the doc structure and conventions
@@ -86,4 +103,5 @@ aux4/                          # Monorepo root
 1. Use `/aux4-package` to scaffold the package
 2. Use `/aux4-agent` to set up the agent (instructions, config, commands)
 3. Use `/aux4-test` to write tests
-4. Use `aux4 aux4 releaser release` to publish
+4. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
+5. Use `aux4 aux4 releaser release` to publish

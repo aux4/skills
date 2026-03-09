@@ -408,7 +408,7 @@ For **Go** packages, add a build step before publish:
           GOOS=windows GOARCH=386 go build -o package/dist/windows/386/my-binary.exe .
 ```
 
-For **JavaScript** packages, add a build step before publish:
+For **JavaScript** packages, add build and test steps before publish:
 
 ```yaml
       - name: Set up Node.js
@@ -416,9 +416,26 @@ For **JavaScript** packages, add a build step before publish:
         with:
           node-version: '22'
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build
-        run: npm ci && npm run build
+        run: npm run build
+
+      - name: Run tests
+        run: cd package && aux4 test run
 ```
+
+For **Go** packages, add a test step after the build step:
+
+```yaml
+      - name: Run tests
+        run: |
+          ln -sf dist/linux/amd64/my-binary package/my-binary
+          cd package && aux4 test run
+```
+
+**Always run tests before publishing.** The workflow should fail if tests don't pass, preventing broken packages from being published.
 
 ## Symlink for Local Testing (Go Packages Only)
 
@@ -451,9 +468,23 @@ aux4 build
 # Create symlink for current platform
 ln -sf dist/$(uname -s | tr '[:upper:]' '[:lower:]')/$(uname -m | sed 's/x86_64/amd64/;s/aarch64\|arm64/arm64/;s/i[36]86/386/')/<binary-name> package/<binary-name>
 
-# Run tests
-aux4 test run
+# Run tests (from package/ directory)
+cd package && aux4 test run
 ```
+
+## Preparing JavaScript Packages for Testing
+
+For JS packages, always build before testing to ensure the bundle is up to date:
+
+```bash
+# Build the bundle
+npm run build
+
+# Run tests (from package/ directory)
+cd package && aux4 test run
+```
+
+**IMPORTANT:** Always run `aux4 test run` from the `package/` or `package/test/` directory. If you get "Command not found", you are in the wrong directory.
 
 ## Build, Install Locally, and Publish
 

@@ -16,9 +16,17 @@ aux4 uses markdown-based `.test.md` files for testing. Tests are placed in the `
 
 ## Running Tests
 
+**IMPORTANT:** You must run `aux4 test run` from the `package/` or `package/test/` directory. If you get "Command not found", you are in the wrong directory — the test runner discovers `package/.aux4` from the current or parent directory.
+
+**Always build before testing.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root before running tests to ensure the bundle/binary is up to date.
+
 ```bash
-# Run all tests in package/test/
-aux4 test run
+# Build first (from project root)
+npm run build        # JS packages
+aux4 build           # Go packages
+
+# Run all tests (from package/ or package/test/)
+cd package && aux4 test run
 
 # Run a specific test file
 aux4 test run package/test/mycommand.test.md
@@ -135,6 +143,33 @@ hello world
 ````markdown
 ```expect:regex
 Hello, \w+!
+```
+````
+
+#### `:json` - JSON Matching
+
+Parses the command output as JSON and compares it with the expected JSON. This lets you write formatted JSON in the expect block even if the command outputs compact JSON on a single line:
+
+````markdown
+```execute
+aux4 config get dev
+```
+
+```expect:json
+{
+  "host": "localhost",
+  "port": 3000
+}
+```
+````
+
+Can be combined with other modifiers like `:partial`:
+
+````markdown
+```expect:json:partial
+{
+  "host": "localhost"
+}
 ```
 ````
 
@@ -416,14 +451,16 @@ Error *?
 
 ### Testing JSON Output
 
+Use `expect:json` to compare JSON output — it parses both the command output and expected value as JSON, so formatting differences don't matter:
+
 ````markdown
 # json output
 
 ```execute
-aux4 config get dev | jq .
+aux4 config get dev
 ```
 
-```expect
+```expect:json
 {
   "host": "localhost",
   "port": 3000
@@ -433,7 +470,32 @@ aux4 config get dev | jq .
 
 ### Testing Long-Running Processes (Servers, Daemons)
 
-For tests that require a background server, use `beforeAll`/`afterAll` hooks with `nohup`. Read `../references/build-configuration.md` for the full pattern with examples.
+For tests that require a background server or daemon, **always use `beforeAll`/`afterAll` hooks** to manage the lifecycle. Never start/stop servers inside `execute` blocks or use inline `> /dev/null 2>&1 &` hacks in test commands.
+
+````markdown
+## daemon tests
+
+```beforeAll
+nohup aux4 myservice start >/dev/null 2>&1 &
+sleep 2
+```
+
+```afterAll
+aux4 myservice stop
+```
+
+### should respond to requests
+
+```execute
+aux4 myservice status
+```
+
+```expect
+running
+```
+````
+
+Read `../references/build-configuration.md` for the full pattern with examples.
 
 ### Preparing Go Packages for Testing
 
@@ -464,25 +526,33 @@ For Go packages, you must build and create a symlink before running tests. See `
 ## Best Practices
 
 1. Start each test file with a `#` heading describing the command being tested
-2. Use `file:` blocks at the appropriate scope level for test fixtures
+2. Use `file:` blocks at the appropriate scope level for test fixtures — **never use `cat <<EOF` or heredocs** in `execute` or `beforeAll` blocks to create files; always use `file:<filename>` blocks instead
 3. Prefer `expect:partial` for output that may vary (timestamps, paths)
 4. Use `expect:regex` for pattern matching complex output
 5. Keep tests focused - one `execute` block per test case
 6. Clean up side effects with `afterAll` or `afterEach` hooks
-7. Test both success and error cases
-8. Use meaningful heading names that describe the behavior being tested
+7. Test both success and error cases — use `error` or `error:partial` blocks for expected stderr output instead of suppressing with `2>/dev/null`
+8. **Never suppress output with `> /dev/null 2>&1`** in `execute` blocks — use `expect` for stdout and `error` for stderr. Suppressing output hides real errors and makes debugging impossible
+9. Use meaningful heading names that describe the behavior being tested
+10. **Test file names must match what they test** — if a test checks hub.aux4.io, don't name it `google-search.test.md`
+11. **Always specify a language tag on fenced code blocks** — use `bash`, `json`, `yaml`, `text`, etc. Never use bare ` ``` ` without a language
 
 ## Instructions
 
 When creating tests:
 
 1. Determine what commands need testing based on the `.aux4` file.
-2. Create a `.test.md` file for each major command or feature.
+2. Create a `.test.md` file for each major command or feature. **Name files after what they actually test.**
 3. For package tests (in `package/test/`), call `aux4 <command>` directly — do NOT use `file:.aux4` blocks. The test runner auto-discovers `package/.aux4` from the parent directory. Only use `file:.aux4` for standalone tests outside a package.
 4. Write tests for all command variations (default values, flags, args, errors).
 5. Use appropriate expect modifiers for flexible matching.
 6. Group related tests under descriptive headings.
-7. For tests that need a background server or daemon, use `nohup ... >/dev/null 2>&1 &` in `beforeAll` and clean up in `afterAll`.
+7. For tests that need a background server or daemon, use `nohup ... >/dev/null 2>&1 &` in `beforeAll` and clean up in `afterAll`. Never start/stop daemons inside `execute` blocks.
 8. For Go packages, ensure the binary is built and a symlink exists at `package/<binary-name>` before running tests.
 9. When writing `.test.md` files, use 4 backticks (````) for outer fenced code blocks when they contain nested 3-backtick code blocks inside. Never escape backticks with backslash.
 10. **Always format JSON with indentation** in `file:` blocks (`.aux4`, `config.yaml`, fixture files). Never use single-line compact JSON for `.aux4` definitions or config fixtures. Each item in the `execute` array must be on its own line.
+11. **Use `file:<filename>` blocks** to create test fixture files — never use `cat <<EOF`, heredocs, or `echo >` in `execute` or `beforeAll` blocks to create files.
+12. **Use `expect` and `error` blocks** to validate output — never suppress stderr with `2>/dev/null`. Use `error:partial` for expected error messages.
+13. **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.). Never use bare ` ``` ` without a language.
+14. **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root first.
+15. **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory.

@@ -191,6 +191,7 @@ Used in `execute` strings to format variables:
 | Function | Example | Output |
 |----------|---------|--------|
 | `value(name)` | `command value(file)` | `command myfile.txt` |
+| `value(*)` | `command value(*)` | `command '{"host":"localhost","port":3000}'` (all params as JSON) |
 | `values(a, b)` | `command values(host, port)` | `command 'localhost' '3000'` |
 | `param(name)` | `command param(file)` | `command --file 'myfile.txt'` |
 | `param(name:alias)` | `command param(file:f)` | `command --f 'myfile.txt'` |
@@ -203,11 +204,31 @@ Used in `execute` strings to format variables:
 | `if(var!=val)` | `if(env!=dev) && echo not-dev` | Test inequality |
 | `if(!var)` | `if(!debug) && echo off` | Negation |
 
+**Passing parameters to external commands**: When a command calls an external binary or script, **always pass known parameters by index using `values()`**. The external program receives them as positional arguments (`args[0]`, `args[1]`, etc.) and does not need to parse flags or implement config lookup — aux4 handles all variable resolution including `--config` binding from config.yaml.
+
+```json
+"execute": ["node ${packageDir}/lib/my-tool.mjs action values(session, url, timeout)"]
+```
+
+The binary receives: `my-tool.mjs action <session> <url> <timeout>` — each value at a known index.
+
+**Use `value(*)` only for dynamic parameters** — when the list of expected params is not known in advance. It passes all parameters as a single JSON object:
+
+```json
+"execute": ["node ${packageDir}/lib/my-tool.mjs value(*)"]
+```
+
+The binary receives: `my-tool.mjs '{"host":"localhost","port":3000,...}'` — a JSON string to parse.
+
+**Prefer `values()` over `value(*)`** when you know the expected parameters. Positional args are simpler, more explicit, and don't require JSON parsing in the target program.
+
 **Nested field access**: Use dot notation to access nested config/variable values. For example, with `person: { firstName: John, lastName: Doe }` in config:
 - `values(person.firstName, person.lastName)` resolves to `'John' 'Doe'`
 - `values(person, person.firstName, person.lastName)` resolves to `'{"firstName":"John","lastName":"Doe"}' 'John' 'Doe'` — passing the parent object as JSON and the individual fields as separate arguments
 
 This works with `value()`, `values()`, `param()`, `params()`, and `object()`. The external command (JS, Go, etc.) receives these as fixed positional arguments at known indices — it does not need to implement config parsing or key lookup.
+
+**How `--config` binds parameters**: When a user runs `aux4 mytool run --config dev`, aux4 reads the config file and populates command variables automatically. The `values()` function then resolves those variables just like any other. The external command doesn't know or care where the values came from — it just receives positional args.
 
 ### Configuration Files (config.yaml)
 
