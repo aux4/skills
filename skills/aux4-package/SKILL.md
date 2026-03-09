@@ -169,11 +169,26 @@ Use a standard license text (MIT, Apache-2.0, etc.). You can also generate it wi
 aux4 license use --name mit --owner "Owner" --year 2025 --project "project-name"
 ```
 
-## Step 3: Create the README.md
+## Step 3: Create the Root README.md
 
-Include: description, installation instructions, usage examples, and command reference. See `/aux4-docs` for the full README structure, section order, and formatting conventions.
+Create a `README.md` at the **repository root** (not inside `package/`). This is the file GitHub displays on the repo page. It should only contain:
 
-## Step 4: Create Man Pages
+```markdown
+# <scope>/<name>
+
+<short description of the package>
+
+- [aux4 hub](https://hub.aux4.io/r/public/packages/<scope>/<name>)
+- [README.md](./package/README.md)
+```
+
+This points visitors to the full documentation inside `package/README.md`.
+
+## Step 4: Create the Package README.md
+
+Create `package/README.md` with the full package documentation: description, installation instructions, usage examples, and command reference. See `/aux4-docs` for the full README structure, section order, and formatting conventions.
+
+## Step 5: Create Man Pages
 
 Place markdown files in `package/man/`. Name them using double underscores for command hierarchy:
 
@@ -215,7 +230,7 @@ Processing complete. Output written to result.csv
 
 The description should go beyond the short help text — explain what the command does, when to use it, how flags interact, and any important behaviors. Include realistic examples with expected output. Create one man page per command. See `/aux4-docs` for the full documentation conventions.
 
-## Step 5: Create Tests
+## Step 6: Create Tests
 
 Place `.test.md` files in `package/test/`. Name files using double underscores for command hierarchy (e.g., `mytool__run.test.md` for `aux4 mytool run`), matching the man page convention. If the profile or command name contains special characters (like `:`), replace them with a single `_` (e.g., `email_list__all.test.md` for profile `email:list` command `all`). Test files are published to hub.aux4.io as usage examples, so they also serve as documentation. See the `/aux4-test` skill for the full test format.
 
@@ -237,7 +252,7 @@ Running myfile.txt
 ```
 ````
 
-## Step 6: Set Up Build, CI/CD, and Publishing
+## Step 7: Set Up Build, CI/CD, and Publishing
 
 Read `../references/build-configuration.md` for the complete build setup, including:
 - Go cross-compilation (8 platform/arch targets, builder profiles)
