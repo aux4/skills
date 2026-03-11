@@ -57,12 +57,13 @@ aux4/                          # Monorepo root
 | `/aux4-docs` | Updating README.md and man pages for an existing package |
 | `/aux4-config` | Working with config.yaml files and the config package |
 | `/aux4-agent` | Creating AI agents using aux4/ai-agent |
+| `/aux4-copilot-skill` | Creating copilot skills with AI-driven or shell-based patterns |
 
 ## Important Rules
 
 - **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory
 - **Always build before testing** — run `npm run build` (JS) or `aux4 build` (Go) from the project root first
-- **Install packages locally with `aux4 aux4 pkger install <scope>/<name>`** — never manually copy files to `~/.aux4.config/packages/`
+- **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory to build, install locally, and test. Never manually update `~/.aux4.config/packages/`
 - **Always format JSON with indentation** in `.aux4`, `.test.md`, `.md`, and any other files — never single-line compact JSON
 - **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.) — never use bare ` ``` `
 - **Use `file:<filename>` blocks** in tests to create fixture files — never use `cat <<EOF`, heredocs, or `echo >`
@@ -81,7 +82,8 @@ aux4/                          # Monorepo root
 2. Use `/aux4-command` to add commands
 3. Use `/aux4-test` to write tests
 4. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
-5. Use `aux4 aux4 releaser release` to publish
+5. Install locally to verify: `cd package && aux4 aux4 releaser install`
+6. Use `aux4 aux4 releaser release` to publish
 
 ### Adding features to an existing package
 1. Read the existing `.aux4` file
@@ -89,6 +91,7 @@ aux4/                          # Monorepo root
 3. Use `/aux4-test` to add tests
 4. Use `/aux4-docs` to update README.md and man pages
 5. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
+6. Install locally to verify: `cd package && aux4 aux4 releaser install`
 
 ### Updating documentation
 1. Use `/aux4-docs` to understand the doc structure and conventions
@@ -104,4 +107,13 @@ aux4/                          # Monorepo root
 2. Use `/aux4-agent` to set up the agent (instructions, config, commands)
 3. Use `/aux4-test` to write tests
 4. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
-5. Use `aux4 aux4 releaser release` to publish
+5. Install locally to verify: `cd package && aux4 aux4 releaser install`
+6. Use `aux4 aux4 releaser release` to publish
+
+### Creating a copilot skill
+1. Use `/aux4-copilot-skill` to scaffold the skill package and choose the pattern (AI-driven or shell-based)
+2. Use `/aux4-test` to write tests
+3. Use `/aux4-docs` to update README.md and man pages
+4. Install locally to verify: `cd package && aux4 aux4 releaser install`
+5. Verify with `aux4 copilot skills --help` and test end-to-end
+6. Use `aux4 aux4 releaser release` to publish

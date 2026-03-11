@@ -292,6 +292,6 @@ When creating a package, always:
 18. **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root, then run `aux4 test run` from the `package/` or `package/test/` directory.
 19. When any command is added or modified, always update the corresponding man page, test file, and README.md to stay in sync. See `/aux4-docs` for documentation conventions.
 20. Load all needed skills at the start of package creation (e.g., `/aux4-package`, `/aux4-test`, `/aux4-command`, `/aux4-docs`) rather than loading them one by one as needed.
-21. **Install packages locally with `aux4 aux4 pkger install <scope>/<name>`** — never manually copy files to `~/.aux4.config/packages/`.
+21. **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory to build, install locally, and test. Never manually update `~/.aux4.config/packages/`.
 22. **Check security and vulnerabilities.** For JS packages, run `npm audit` after installing dependencies. Review code for common vulnerabilities (command injection, path traversal, etc.).
 23. **Check that dependencies are up to date.** For JS packages, run `npm outdated` to verify. For Go packages, run `go list -m -u all`.

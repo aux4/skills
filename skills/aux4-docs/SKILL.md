@@ -69,7 +69,7 @@ List any environment variables the package reads.
 
 2. **Feature sections are self-contained.** Each section should make sense on its own — include its own config snippet and examples. Don't force users to cross-reference.
 
-3. **Document behavior, not implementation.** Explain what happens from the user's perspective. "Returns 429 when exceeded" is better than "uses a sliding window Map".
+3. **Document behavior, not implementation.** Explain what happens from the user's perspective. "Returns 429 when exceeded" is better than "uses a sliding window Map". Avoid naming specific third-party services or tools when the underlying implementation could be swapped — describe what the feature does, not which tool powers it.
 
 4. **Include caveats and warnings.** If a feature has security implications, limitations, or common pitfalls, add a **bold** note inline. Example:
 

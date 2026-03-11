@@ -20,6 +20,7 @@ Claude Code skills for creating and working with [aux4](https://aux4.io) package
 | `/aux4-docs` | Updates README.md and man pages — structure, conventions, keeping docs in sync |
 | `/aux4-config` | Works with `config.yaml` files — get, set, merge, nested paths, `--config` flag |
 | `/aux4-agent` | Creates AI agents using `aux4/ai-agent` — instructions, model config, tools, chat |
+| `/aux4-copilot-skill` | Creates copilot skills — AI-driven or shell-based patterns for the aux4 copilot |
 
 ## Usage
 
@@ -47,6 +48,10 @@ In Claude Code, type the skill name followed by what you want to do:
 
 ```
 /aux4-config set up environment-based configuration for dev and prod
+```
+
+```
+/aux4-copilot-skill create a skill that translates text using DeepL API
 ```
 
 ```

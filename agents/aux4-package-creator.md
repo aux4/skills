@@ -81,7 +81,7 @@ Before creating or modifying a package, look at existing packages in the workspa
 
 - **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root first
 - **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory
-- **Install packages locally with `aux4 aux4 pkger install <scope>/<name>`** — never manually copy files to `~/.aux4.config/packages/`
+- **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory. Never manually update `~/.aux4.config/packages/`
 - Use `file:<filename>` blocks to create test fixture files — never use `cat <<EOF`, heredocs, or `echo >` in execute or beforeAll blocks
 - Use `expect`/`error` blocks to validate output — never suppress stderr with `2>/dev/null` in test execute blocks
 - Use `beforeAll`/`afterAll` hooks for daemon/server lifecycle — never start/stop services inside `execute` blocks
