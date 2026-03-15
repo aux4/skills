@@ -516,6 +516,9 @@ Install the releaser: `aux4 aux4 pkger install aux4/package-releaser`
 ```bash
 cd package
 
+# Remove leftover zip files before building — they get included in the package by mistake
+rm -f *.zip 2>/dev/null || true
+
 # Install locally for testing (builds, bumps version to X-local, installs, restores version)
 aux4 aux4 releaser install
 
@@ -526,6 +529,12 @@ aux4 aux4 releaser release --level patch
 aux4 aux4 releaser install --noBuild true
 aux4 aux4 releaser release --level minor --noBuild true
 ```
+
+**Important:**
+- The `-local` version suffix is added temporarily during local install and restored after. Never commit `.aux4` files with `-local` in the version.
+- If reinstalling fails because the package is used by other packages and uninstall is blocked, bump the version and install without uninstalling.
+- To uninstall, use `aux4 aux4 pkger uninstall <scope>/<name>`. Never remove files from `~/.aux4.config/packages/` directly.
+- To list installed packages, use `aux4 aux4 pkger list`. Never browse `~/.aux4.config/packages/` directly.
 
 The `release` command does everything in one step:
 1. `git pull -r` to get latest changes

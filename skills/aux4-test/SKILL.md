@@ -16,7 +16,7 @@ aux4 uses markdown-based `.test.md` files for testing. Tests are placed in the `
 
 ## Running Tests
 
-**IMPORTANT:** You must run `aux4 test run` from the `package/` or `package/test/` directory. If you get "Command not found", you are in the wrong directory — the test runner discovers `package/.aux4` from the current or parent directory.
+**IMPORTANT:** You must run `aux4 test run` from the `package/` or `package/test/` directory. If you get "Command not found", you are in the wrong directory — the test runner discovers `package/.aux4` from the current or parent directory. You do NOT need to install the package locally to run tests — just build and run from the `package/` directory.
 
 **Always build before testing.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root before running tests to ensure the bundle/binary is up to date.
 
@@ -555,4 +555,5 @@ When creating tests:
 12. **Use `expect` and `error` blocks** to validate output — never suppress stderr with `2>/dev/null`. Use `error:partial` for expected error messages.
 13. **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.). Never use bare ` ``` ` without a language.
 14. **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root first.
-15. **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory.
+15. **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory. You do NOT need to install the package locally — just build and run.
+16. **Tests must always call `aux4 <command>`** in `execute` blocks — never call binaries or scripts directly (e.g., `node lib/tool.mjs`, `./dist/binary`). Always test through the full aux4 command path.

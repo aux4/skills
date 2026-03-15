@@ -293,5 +293,9 @@ When creating a package, always:
 19. When any command is added or modified, always update the corresponding man page, test file, and README.md to stay in sync. See `/aux4-docs` for documentation conventions.
 20. Load all needed skills at the start of package creation (e.g., `/aux4-package`, `/aux4-test`, `/aux4-command`, `/aux4-docs`) rather than loading them one by one as needed.
 21. **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory to build, install locally, and test. Never manually update `~/.aux4.config/packages/`.
-22. **Check security and vulnerabilities.** For JS packages, run `npm audit` after installing dependencies. Review code for common vulnerabilities (command injection, path traversal, etc.).
-23. **Check that dependencies are up to date.** For JS packages, run `npm outdated` to verify. For Go packages, run `go list -m -u all`.
+22. **Never browse or modify `~/.aux4.config/packages/` directly** — use `aux4 aux4 pkger list` to inspect installed packages, `aux4 aux4 pkger uninstall <scope>/<name>` to remove packages. Never copy files to or delete files from that directory manually.
+23. **Remove zip files from `package/` before building** — leftover `.zip` files get included in the package by mistake. Clean them before running `aux4 aux4 releaser install` or `aux4 aux4 pkger build`.
+24. **If reinstalling fails** because the existing version is used by other packages and uninstall is blocked, bump the version and install without uninstalling first.
+25. **Never commit `.aux4` files with `-local` version suffix** — the `-local` suffix is added temporarily by `aux4 aux4 releaser install` for local testing. Always verify the version is clean before committing.
+26. **Check security and vulnerabilities.** For JS packages, run `npm audit` after installing dependencies. Review code for common vulnerabilities (command injection, path traversal, etc.).
+27. **Check that dependencies are up to date.** For JS packages, run `npm outdated` to verify. For Go packages, run `go list -m -u all`.

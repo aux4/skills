@@ -61,9 +61,14 @@ aux4/                          # Monorepo root
 
 ## Important Rules
 
-- **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory
+- **Run tests from `package/` or `package/test/`** — if you get "Command not found", you are in the wrong directory. Tests do NOT require installing the package locally — just build and run from the `package/` directory
 - **Always build before testing** — run `npm run build` (JS) or `aux4 build` (Go) from the project root first
 - **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory to build, install locally, and test. Never manually update `~/.aux4.config/packages/`
+- **Never browse or modify `~/.aux4.config/packages/` directly** — use `aux4 aux4 pkger list` to inspect installed packages, `aux4 aux4 pkger uninstall <scope>/<name>` to remove, and `aux4 aux4 releaser install` to install
+- **Remove zip files from `package/` before building** — leftover `.zip` files get included in the package by mistake
+- **If reinstalling a package fails** because the existing version is used by other packages, bump the version and install without uninstalling first
+- **Never commit `.aux4` files with `-local` version suffix** — the `-local` suffix is added temporarily by `aux4 aux4 releaser install` for local testing; ensure it's not in the committed version
+- **Tests must call `aux4 <command>`** — never call binaries or scripts directly (e.g., `node lib/tool.mjs` or `./dist/binary`). Tests should always exercise the full aux4 command path
 - **Always format JSON with indentation** in `.aux4`, `.test.md`, `.md`, and any other files — never single-line compact JSON
 - **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.) — never use bare ` ``` `
 - **Use `file:<filename>` blocks** in tests to create fixture files — never use `cat <<EOF`, heredocs, or `echo >`
