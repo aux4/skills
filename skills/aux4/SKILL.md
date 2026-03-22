@@ -137,6 +137,43 @@ Variables are parameters for commands. They support:
 - `${packageDir}` - Directory of the `.aux4` file
 - `${aux4HomeDir}` - aux4 home directory (`~/.aux4.config`)
 
+#### Secret References (`secret://`)
+
+Variable defaults and `set:` instructions can reference secrets using the `secret://` URI format:
+
+```
+secret://<provider>/<vault>/<item>/<field>
+```
+
+Secrets are resolved at runtime by calling the installed secret provider (e.g., `aux4 secret 1password get`). Multiple secrets from the same provider are batched into a single call for efficiency.
+
+**In variable defaults:**
+
+```json
+{
+  "name": "apiKey",
+  "text": "API key",
+  "default": "secret://1password/Work/my-service/credential"
+}
+```
+
+**In `set:` instructions:**
+
+```json
+"execute": [
+  "set:token=secret://1password/Work/GitHub/token",
+  "curl -H 'Authorization: Bearer ${token}' https://api.example.com"
+]
+```
+
+**OTP support:** Use the `otp` field to generate a one-time password:
+
+```json
+"default": "secret://1password/Work/my-service/otp"
+```
+
+If the secret URI has fewer than 3 path segments or doesn't start with `secret://`, it's passed through unchanged.
+
 #### Dot Variables (Nested Parameters)
 
 Variables support dot notation for nested object fields. Use `${person.firstName}` in execute to reference nested values. Users can provide them in two ways:

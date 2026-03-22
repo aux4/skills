@@ -1,6 +1,6 @@
 ---
 name: aux4-test
-description: Creates and runs aux4 .test.md files for testing aux4 packages. Markdown-based test format with execute, expect, error, file blocks, and hooks.
+description: Creates and runs aux4 .test.md files for testing aux4 packages. Markdown-based test format with execute, expect, error, file blocks, hooks, AI validation (expect:ai), config.yaml variable substitution, and test suite manifests.
 user-invocable: true
 disable-model-invocation: false
 argument-hint: [test-description]
@@ -30,6 +30,15 @@ cd package && aux4 test run
 
 # Run a specific test file
 aux4 test run package/test/mycommand.test.md
+
+# Run with config.yaml variable substitution
+aux4 test run --configFile config.yaml --config test
+
+# Run with AI validation support (expect:ai)
+aux4 test run --configFile config.yaml --aiConfig agent
+
+# Run a specific test group from test.suite.md
+aux4 test run --group core
 
 # Add a test programmatically
 aux4 test add mytest.test.md --level 2 --name "Test Name" --execute "echo hello"
@@ -172,6 +181,38 @@ Can be combined with other modifiers like `:partial`:
 }
 ```
 ````
+
+#### `:ai` - AI-Powered Validation
+
+Validates output using natural language criteria instead of exact matching. The test runner sends the command output to an AI model which evaluates whether it matches the description. Requires `--configFile` and `--aiConfig` flags when running tests.
+
+````markdown
+```execute
+echo "Hello, my name is Alice and I am happy to meet you!"
+```
+
+```expect:ai
+The output should be a friendly greeting message that includes a person's name
+```
+````
+
+Works with `error:ai` too for stderr validation:
+
+````markdown
+```execute
+some-command-that-fails
+```
+
+```error:ai
+The error message should indicate a missing configuration file
+```
+````
+
+**Requirements:**
+- `aux4/ai-agent` must be installed
+- Run tests with: `aux4 test run --configFile config.yaml --aiConfig agent`
+- The config.yaml must have a model configured under the specified section
+- AI tests automatically get a 30-second timeout
 
 #### Combined Modifiers
 
@@ -335,6 +376,56 @@ cat state.txt
 fresh
 ```
 ````
+
+### Variable Substitution with `config.yaml`
+
+Tests can use `{{varName}}` placeholders that get replaced with values from a config.yaml file. This avoids hardcoding environment-specific values in tests.
+
+````markdown
+```file:config.yaml
+config:
+  test:
+    greeting: hello-world
+    port: 3000
+```
+
+```execute
+echo "{{greeting}} on port {{port}}"
+```
+
+```expect
+hello-world on port 3000
+```
+````
+
+Run with:
+
+```bash
+aux4 test run --configFile config.yaml --config test
+```
+
+Substitution applies to `execute`, `expect`, `error`, `file:` content, and hook commands. Unresolved variables (not in config) are left unchanged.
+
+### Test Suite Manifest (`test.suite.md`)
+
+Organize test files into named groups for selective execution. Place a `test.suite.md` file in the test directory:
+
+````markdown
+## core
+- add.test.md
+- execute-expect.test.md
+
+## ai (optional)
+- expect-ai.test.md
+````
+
+Run a specific group:
+
+```bash
+aux4 test run --group core
+```
+
+Groups marked `(optional)` are skipped unless explicitly requested.
 
 ## Writing Tests for aux4 Packages
 
@@ -536,6 +627,8 @@ For Go packages, you must build and create a symlink before running tests. See `
 9. Use meaningful heading names that describe the behavior being tested
 10. **Test file names must match what they test** — if a test checks hub.aux4.io, don't name it `google-search.test.md`
 11. **Always specify a language tag on fenced code blocks** — use `bash`, `json`, `yaml`, `text`, etc. Never use bare ` ``` ` without a language
+12. **Use `expect:ai` for non-deterministic output** — when command output varies between runs (AI responses, timestamps, etc.), use `expect:ai` with a natural language description instead of exact matching
+13. **Use `{{variable}}` substitution** for environment-specific values — avoid hardcoding API keys, ports, or model names in tests; define them in config.yaml and reference with `{{varName}}`
 
 ## Instructions
 
