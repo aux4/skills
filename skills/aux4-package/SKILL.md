@@ -188,6 +188,15 @@ This points visitors to the full documentation inside `package/README.md`.
 
 Create `package/README.md` with the full package documentation: description, installation instructions, usage examples, and command reference. See `/aux4-docs` for the full README structure, section order, and formatting conventions.
 
+Critical rules for the package README:
+
+- Title must be `# scope/name` (e.g., `# aux4/todo`). Never `@scope/name` or `# name` alone.
+- Must include `## Installation` section with `aux4 aux4 pkger install scope/name`.
+- Focus on CLI usage only — never include programmatic/library usage (import statements, API examples).
+- Never paste the `.aux4` manifest JSON into the README — document commands and options in prose.
+- Never reference tests or test expectations in user-facing documentation.
+- Avoid implementation details (internal file paths, algorithms, architecture) unless users need to interact with them.
+
 ## Step 5: Create Man Pages
 
 Place markdown files in `package/man/`. Name them using double underscores for command hierarchy:

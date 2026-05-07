@@ -24,7 +24,7 @@ These must stay in sync with each other and with the code. When a feature is add
 A README should follow this section order. Not all sections are required — include what's relevant to the package:
 
 ````markdown
-# Package Name
+# scope/package-name
 
 One-paragraph description of what the package does.
 
@@ -87,6 +87,32 @@ List any environment variables the package reads.
     ```
 
 6. **Use consistent formatting.** Code values in backticks (`true`, `503`, `/api/*`). Config keys in backticks (`server.timeout`). HTTP methods and status codes in plain text or backticks depending on context.
+
+### Anti-Patterns — Never Include These
+
+1. **No `.aux4` manifest JSON in READMEs.** The `.aux4` file is an implementation artifact. Users don't need to see the full JSON manifest — document the commands and their options instead.
+
+2. **No programmatic/library usage sections.** aux4 packages are CLI tools, not importable libraries. Never include `import { ... } from '@aux4/...'` examples or JavaScript/Go API usage. Users interact only through `aux4 <command>`.
+
+3. **No test-specific language.** Never reference tests, test expectations, or test suites in user-facing docs. Write "Output:" or "Returns:" instead of "The test expects:", "Expected result in the test:", or "from tests".
+
+4. **No internal implementation details.** Don't expose file paths the tool uses internally, memory/performance implementation choices (e.g., "implemented in Go", "uses a Map for caching", "statically compiled"), or architecture specifics (e.g., "uses sliding window keyed by IP"). Only mention internals if the user needs to know (e.g., "stored in `.jobs/`" is OK because users may want to inspect or clean up).
+
+5. **No JSON package templates for provider patterns.** When documenting extensible plugin/provider systems (like `aux4/secret` or `aux4/registry`), reference an existing provider package as an example rather than inlining a full `.aux4` template.
+
+6. **Use `aux4/scope` title format.** The README title must be `# scope/name` matching the package scope and name (e.g., `# aux4/todo`, `# aux4/config`). Never use `@aux4/name`, `# aux4 name` (with space), or `# name` alone.
+
+7. **Always include an Installation section.** Every README must have an Installation section with the standard install command:
+
+    ```bash
+    aux4 aux4 pkger install scope/name
+    ```
+
+    Never use `aux4 install` (wrong), `aux4 aux4 releaser install` (that's for dev), or any other install variant in the README.
+
+8. **Use "Installation" not "Install" as the heading.** The section heading must be `## Installation` (not `## Install`).
+
+9. **No "How It Works" with implementation internals.** A "How It Works" section that describes user-visible behavior is fine. One that exposes internal port resolution, file formats, or process architecture should be removed or rewritten to focus on what the user needs to know.
 
 ## Man Page Format
 
