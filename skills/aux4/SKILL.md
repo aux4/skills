@@ -126,7 +126,7 @@ Variables are parameters for commands. They support:
 | `arg` | boolean | Accept as positional argument (only one variable per command can be `arg: true`) |
 | `multiple` | boolean | Accept multiple values |
 | `env` | string | Read from environment variable |
-| `options` | string[] | List of choices for select prompt |
+| `options` | string[] | List of choices for select prompt (with `multiple: true`, shows checkbox list) |
 | `hide` | boolean | Hide input (for passwords) |
 | `encrypt` | boolean | Encrypt the value |
 
@@ -218,6 +218,7 @@ Commands in the `execute` array can use special prefixes:
 | `each:` | `each:${response}` | Iterate over lines/array |
 | `confirm:` | `confirm:Are you sure?` | Yes/no prompt (bypass with `--yes`) |
 | `stdin:` | `stdin:command` | Pass stdin to command |
+| `range:` | `range:5` or `range:1-10` | Generate numeric array in `${response}` |
 | `alias:` | `alias:command` | Share stdio with parent |
 | `#` | `# this is a comment` | Comment (no-op) |
 
@@ -325,6 +326,35 @@ aux4 aux4 man <command>        # Show command man page
 aux4 aux4 source <command>     # Show command source (.aux4 definition)
 aux4 aux4 which <command>      # Show where command is defined
 ```
+
+### Hooks
+
+Hooks are cross-cutting interceptors defined at the package level alongside `profiles`. They run before, after, or on error of any command — including commands from other packages.
+
+```json
+{
+  "profiles": [],
+  "hooks": [
+    {
+      "command": "main/deploy",
+      "order": 10,
+      "before": ["log:deploying to ${env}..."],
+      "after": ["log:deployed: ${__response}"],
+      "error": ["log:failed: ${__error}"]
+    }
+  ]
+}
+```
+
+- **Pattern matching**: Command pattern uses `profile/command` format — `*/deploy` matches any `deploy` command, `*/*` matches all commands
+- **Conditional params**: `params` field matches variable values — `"env": "production"` or `"env": "dev|staging"` (pipe for alternatives, AND across multiple params)
+- **Variable scope**: `before` hooks can inject variables with `set:` that are available in the command and `after`/`error` hooks
+- **Built-in variables**: `${__command}`, `${__scope}`, `${__package}`, `${__response}`, `${__error}`, `${__exitCode}`
+- **No recursion**: Hooks never trigger other hooks
+- **Blocked executors**: `profile:` and `stdin:` are not allowed in hooks
+- **Skip hooks**: `--noHooks` flag or `AUX4_NO_HOOKS=true` env var
+- **Block hooks per command**: `"noHooks": true` on a command definition
+- **Discovery**: `aux4 aux4 hooks`, `aux4 aux4 hooks --command "pattern"`, `aux4 <cmd> --showHooks`
 
 ### Package Manager (pkger)
 

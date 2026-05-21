@@ -31,6 +31,33 @@ aux4/                          # Monorepo root
 └── ...
 ```
 
+## Package Structure
+
+Every aux4 package follows this layout:
+
+```
+package-name/
+├── package/
+│   ├── .aux4              # Package metadata + command definitions
+│   ├── README.md          # Package documentation
+│   ├── LICENSE            # License file
+│   ├── man/               # Man pages (command__subcommand.md)
+│   ├── test/              # Tests (.test.md files)
+│   ├── lib/               # JS bundles (.mjs) — JS packages only
+│   └── dist/              # Compiled binaries — Go packages only
+│       ├── darwin/amd64/
+│       ├── darwin/arm64/
+│       ├── linux/amd64/
+│       ├── linux/arm64/
+│       ├── linux/386/
+│       ├── windows/amd64/
+│       ├── windows/arm64/
+│       └── windows/386/
+├── .aux4                  # Build/dev commands
+├── go.mod / package.json  # Language-specific config
+└── source files
+```
+
 ## Key Conventions
 
 - The `main` profile is the required entry point in every `.aux4` file

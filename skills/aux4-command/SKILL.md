@@ -51,6 +51,7 @@ Add a command to an existing `.aux4` file based on: $ARGUMENTS
 ```
 
 - `private: true` hides the command from help output (useful for internal/helper commands).
+- `noHooks: true` prevents any hooks from running on this command (useful for internal/sensitive commands).
 
 ## Profile Routing
 
@@ -89,7 +90,7 @@ See `/aux4` for the full property reference, resolution order, special variables
 
 ### Executor Prefixes
 
-Common prefixes: `profile:`, `set:`, `log:`, `nout:`, `json:`, `each:`, `confirm:`, `stdin:`, `alias:`, `debug:`, `#`. Use parameter functions (`value()`, `values()`, `param()`, `params()`, `object()`) to format variables for external commands. See `/aux4` for the full executor and parameter function reference tables.
+Common prefixes: `profile:`, `set:`, `log:`, `nout:`, `json:`, `each:`, `range:`, `confirm:`, `stdin:`, `alias:`, `debug:`, `#`. Use parameter functions (`value()`, `values()`, `param()`, `params()`, `object()`) to format variables for external commands. See `/aux4` for the full executor and parameter function reference tables.
 
 **Important**: When calling external binaries or scripts, **always pass known parameters by index using `values()`** — the target program receives them as positional args and doesn't need to parse flags. Only use `value(*)` (all params as JSON) when the parameter list is dynamic and not known in advance.
 
