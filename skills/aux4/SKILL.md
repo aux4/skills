@@ -211,6 +211,7 @@ Commands in the `execute` array can use special prefixes:
 | `profile:` | `profile:deploy` | Switch to another profile |
 | `set:` | `set:url=https://api.com` | Set a variable to a static value |
 | `set:` (command) | `set:result=!curl -s ${url}` | Set variable from command output (stderr shown on error) |
+| `set:` (json) | `set:obj=json:${data}` | Parse JSON string into navigable object |
 | `log:` | `log:Processing ${file}` | Print output |
 | `debug:` | `debug:value is ${x}` | Debug output (AUX4_DEBUG=true) |
 | `nout:` | `nout:curl -s ${url}` | Run without output, saves to `${response}` |
@@ -235,7 +236,9 @@ Used in `execute` strings to format variables:
 | `param(name:alias)` | `command param(file:f)` | `command --f 'myfile.txt'` |
 | `param(name**)` | `command param(tag**)` | `command --tag 'a' --tag 'b'` (one flag per value) |
 | `params(a, b)` | `command params(host, port)` | `command --host 'localhost' --port '3000'` |
-| `object(a, b)` | `command object(host, port)` | `command '{"host":"localhost","port":3000}'` |
+| `object(a, b)` | `command object(host, port)` | `command '{"host":"localhost","port":3000}'` (supports aliases: `object(data.name:name)`) |
+| `nvl(a, b, 'c')` | `log:nvl(avatar, 'default.png')` | First non-null, non-empty value (supports quoted literals) |
+| `exists(var)` | `exists(file) && cp ${file} out/` | Test if file at variable path exists |
 | `if(var)` | `if(name) && echo yes` | Test if variable has a value |
 | `if(var==)` | `if(name==) && echo empty` | Test if variable is empty |
 | `if(var==val)` | `if(env==prod) && echo prod` | Test equality |
