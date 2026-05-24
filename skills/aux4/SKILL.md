@@ -219,6 +219,7 @@ Commands in the `execute` array can use special prefixes:
 | `each:` | `each:${response}` | Iterate over lines/array |
 | `confirm:` | `confirm:Are you sure?` | Yes/no prompt (bypass with `--yes`) |
 | `stdin:` | `stdin:command` | Pass stdin to command |
+| `file:` | `file:out.txt:content` | Write content to file (`+` prefix to append) |
 | `range:` | `range:5` or `range:1-10` | Generate numeric array in `${response}` |
 | `alias:` | `alias:command` | Share stdio with parent |
 | `#` | `# this is a comment` | Comment (no-op) |
