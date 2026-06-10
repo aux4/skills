@@ -299,12 +299,13 @@ When creating a package, always:
 16. **Always specify a language tag** on fenced code blocks (`bash`, `json`, `yaml`, `text`, etc.). Never use bare ` ``` ` without a language.
 17. For Go packages, before running tests: build the binary (`aux4 build`), then create a symlink from `package/<binary-name>` to `dist/<os>/<arch>/<binary-name>` for the current platform.
 18. **Always build before running tests.** Run `npm run build` (JS) or `aux4 build` (Go) from the project root, then run `aux4 test run` from the `package/` or `package/test/` directory.
-19. When any command is added or modified, always update the corresponding man page, test file, and README.md to stay in sync. See `/aux4-docs` for documentation conventions.
-20. Load all needed skills at the start of package creation (e.g., `/aux4-package`, `/aux4-test`, `/aux4-command`, `/aux4-docs`) rather than loading them one by one as needed.
-21. **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory to build, install locally, and test. Never manually update `~/.aux4.config/packages/`.
-22. **Never browse or modify `~/.aux4.config/packages/` directly** — use `aux4 aux4 pkger list` to inspect installed packages, `aux4 aux4 pkger uninstall <scope>/<name>` to remove packages. Never copy files to or delete files from that directory manually.
-23. **Remove zip files from `package/` before building** — leftover `.zip` files get included in the package by mistake. Clean them before running `aux4 aux4 releaser install` or `aux4 aux4 pkger build`.
-24. **If reinstalling fails** because the existing version is used by other packages and uninstall is blocked, bump the version and install without uninstalling first.
-25. **Never commit `.aux4` files with `-local` version suffix** — the `-local` suffix is added temporarily by `aux4 aux4 releaser install` for local testing. Always verify the version is clean before committing.
-26. **Check security and vulnerabilities.** For JS packages, run `npm audit` after installing dependencies. Review code for common vulnerabilities (command injection, path traversal, etc.).
-27. **Check that dependencies are up to date.** For JS packages, run `npm outdated` to verify. For Go packages, run `go list -m -u all`.
+19. **Run `aux4 lint run` before pushing.** After building, run `aux4 lint run --strict true` from the project root to validate all `.aux4` files. Fix any errors before committing. If `aux4/lint` is not installed, install it with `aux4 aux4 pkger install aux4/lint`.
+20. When any command is added or modified, always update the corresponding man page, test file, and README.md to stay in sync. See `/aux4-docs` for documentation conventions.
+21. Load all needed skills at the start of package creation (e.g., `/aux4-package`, `/aux4-test`, `/aux4-command`, `/aux4-docs`) rather than loading them one by one as needed.
+22. **Test local packages with `aux4 aux4 releaser install`** — run from the `package/` directory to build, install locally, and test. Never manually update `~/.aux4.config/packages/`.
+23. **Never browse or modify `~/.aux4.config/packages/` directly** — use `aux4 aux4 pkger list` to inspect installed packages, `aux4 aux4 pkger uninstall <scope>/<name>` to remove packages. Never copy files to or delete files from that directory manually.
+24. **Remove zip files from `package/` before building** — leftover `.zip` files get included in the package by mistake. Clean them before running `aux4 aux4 releaser install` or `aux4 aux4 pkger build`.
+25. **If reinstalling fails** because the existing version is used by other packages and uninstall is blocked, bump the version and install without uninstalling first.
+26. **Never commit `.aux4` files with `-local` version suffix** — the `-local` suffix is added temporarily by `aux4 aux4 releaser install` for local testing. Always verify the version is clean before committing.
+27. **Check security and vulnerabilities.** For JS packages, run `npm audit` after installing dependencies. Review code for common vulnerabilities (command injection, path traversal, etc.).
+28. **Check that dependencies are up to date.** For JS packages, run `npm outdated` to verify. For Go packages, run `go list -m -u all`.

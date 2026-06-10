@@ -105,7 +105,8 @@ package-name/
 - **Keep README in sync** — update it whenever commands are added or modified
 - **Check security and vulnerabilities** — run `npm audit` (JS), review code for injection and common vulnerabilities
 - **Check dependencies are up to date** — run `npm outdated` (JS) or `go list -m -u all` (Go)
-- **Publish workflows must run tests** before publishing — add a test step in GitHub Actions
+- **Run `aux4 lint run --strict true` before pushing** — validates all `.aux4` files for errors. Install with `aux4 aux4 pkger install aux4/lint` if not installed
+- **Publish workflows must lint and test** before publishing — use `aux4/action@v1` with lint → test → publish pipeline
 
 ## Common Workflows
 
@@ -113,7 +114,7 @@ package-name/
 1. Use `/aux4-package` to scaffold the package
 2. Use `/aux4-command` to add commands
 3. Use `/aux4-test` to write tests
-4. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
+4. Build, then lint and test: `npm run build && aux4 lint run --strict true && cd package && aux4 test run`
 5. Install locally to verify: `cd package && aux4 aux4 releaser install`
 6. Use `aux4 aux4 releaser release` to publish
 
@@ -122,7 +123,7 @@ package-name/
 2. Use `/aux4-command` to add the new command
 3. Use `/aux4-test` to add tests
 4. Use `/aux4-docs` to update README.md and man pages
-5. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
+5. Build, then lint and test: `npm run build && aux4 lint run --strict true && cd package && aux4 test run`
 6. Install locally to verify: `cd package && aux4 aux4 releaser install`
 
 ### Updating documentation
@@ -138,7 +139,7 @@ package-name/
 1. Use `/aux4-package` to scaffold the package
 2. Use `/aux4-agent` to set up the agent (instructions, config, commands)
 3. Use `/aux4-test` to write tests
-4. Build, then run tests from `package/`: `npm run build && cd package && aux4 test run`
+4. Build, then lint and test: `npm run build && aux4 lint run --strict true && cd package && aux4 test run`
 5. Install locally to verify: `cd package && aux4 aux4 releaser install`
 6. Use `aux4 aux4 releaser release` to publish
 
