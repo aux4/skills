@@ -327,7 +327,19 @@ package/lib/node_modules/
 
 ## GitHub Actions
 
-Create `.github/workflows/publish.yml` to auto-publish to hub.aux4.io:
+Create `.github/workflows/publish.yml` using the unified `aux4/action@v1` GitHub Action. The recommended pipeline order is: **lint → test (parallel) → publish**.
+
+```
+lint → test-linux ─┐
+                    ├→ publish
+lint → test-darwin ─┘
+```
+
+**Required secrets:**
+- `AUX4_ACCESS_TOKEN` - Authentication token for hub.aux4.io
+- `GITHUB_TOKEN` - Provided automatically by GitHub
+
+### JavaScript Package Workflow
 
 ```yaml
 name: Publish Package
@@ -363,79 +375,250 @@ permissions:
   contents: write
 
 jobs:
-  publish:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        uses: aux4/action@v1
+        with:
+          command: lint
+          strict: 'true'
+
+  test-linux:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        uses: aux4/action@v1
+        with:
+          command: test
+          build_command: npm run build
+
+  test-darwin:
+    needs: [lint]
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        uses: aux4/action@v1
+        with:
+          command: test
+          build_command: npm run build
+
+  publish:
+    needs: [test-linux, test-darwin]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # Add build steps here if needed (see below)
-
-      - name: Publish package
-        uses: aux4/publish-package-action@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
-          dir: package
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        uses: aux4/action@v1
+        with:
+          command: publish
           level: ${{ inputs.level || 'patch' }}
           aux4_token: ${{ secrets.AUX4_ACCESS_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-**Required secrets:**
-- `AUX4_ACCESS_TOKEN` - Authentication token for hub.aux4.io
-- `GITHUB_TOKEN` - Provided automatically by GitHub
-
-**Important**: The `dir: package` parameter tells the publish action to run from the `package/` directory where the `.aux4` metadata file lives.
-
-For **Go** packages, add a build step before publish:
+### Go Package Workflow
 
 ```yaml
+name: Publish Package
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+      - '!.github/**'
+      - '!README.md'
+      - '!LICENSE'
+      - '!.gitignore'
+
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Release level (patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+concurrency:
+  group: publish-package
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Lint
+        uses: aux4/action@v1
+        with:
+          command: lint
+          strict: 'true'
+
+  test-linux:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.23'
+
+      - name: Test
+        uses: aux4/action@v1
+        with:
+          command: test
+          build_command: aux4 builder linux
+
+  test-darwin:
+    needs: [lint]
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.23'
+
+      - name: Test
+        uses: aux4/action@v1
+        with:
+          command: test
+          build_command: aux4 builder darwin
+
+  publish:
+    needs: [test-linux, test-darwin]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
           go-version: '1.23'
 
       - name: Build
-        run: |
-          GOOS=darwin GOARCH=amd64 go build -o package/dist/darwin/amd64/my-binary .
-          GOOS=darwin GOARCH=arm64 go build -o package/dist/darwin/arm64/my-binary .
-          GOOS=linux GOARCH=amd64 go build -o package/dist/linux/amd64/my-binary .
-          GOOS=linux GOARCH=arm64 go build -o package/dist/linux/arm64/my-binary .
-          GOOS=linux GOARCH=386 go build -o package/dist/linux/386/my-binary .
-          GOOS=windows GOARCH=amd64 go build -o package/dist/windows/amd64/my-binary.exe .
-          GOOS=windows GOARCH=arm64 go build -o package/dist/windows/arm64/my-binary.exe .
-          GOOS=windows GOARCH=386 go build -o package/dist/windows/386/my-binary.exe .
-```
+        run: aux4 build
 
-For **JavaScript** packages, add build and test steps before publish:
-
-```yaml
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Publish
+        uses: aux4/action@v1
         with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Run tests
-        run: cd package && aux4 test run
+          command: publish
+          level: ${{ inputs.level || 'patch' }}
+          aux4_token: ${{ secrets.AUX4_ACCESS_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-For **Go** packages, add a test step after the build step:
+### Shell-Only Package Workflow
+
+For packages with no build step:
 
 ```yaml
-      - name: Run tests
-        run: |
-          ln -sf dist/linux/amd64/my-binary package/my-binary
-          cd package && aux4 test run
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: aux4/action@v1
+        with:
+          command: lint
+          strict: 'true'
+
+  test:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: aux4/action@v1
+        with:
+          command: test
+
+  publish:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: aux4/action@v1
+        with:
+          command: publish
+          level: ${{ inputs.level || 'patch' }}
+          aux4_token: ${{ secrets.AUX4_ACCESS_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-**Always run tests before publishing.** The workflow should fail if tests don't pass, preventing broken packages from being published.
+**Always run lint and tests before publishing.** The workflow should fail if lint or tests don't pass, preventing broken packages from being published.
 
 ## Symlink for Local Testing (Go Packages Only)
 

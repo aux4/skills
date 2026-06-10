@@ -70,7 +70,7 @@ package-name/
 - Test files use `.test.md` extension with markdown-based execute/expect blocks. Same naming rule applies (e.g., `email_list__all.test.md`)
 - Go packages cross-compile to 8 platform/arch combinations
 - JS packages bundle with Rollup to a single `.mjs` file
-- Publishing uses `aux4/publish-package-action@v1` GitHub Action
+- Publishing uses `aux4/action@v1` GitHub Action (lint, test, and publish)
 - Package registry: hub.aux4.io
 
 ## Skills Available
